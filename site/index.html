@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>ZeonLab</title>
+<meta name="description" content="ZeonLab is a research lab working on causal reasoning about investments: holding a structural account of why an asset moves, calibrating it against thin evidence, and grading it under a rule it did not write.">
+<link rel="canonical" href="https://zeonlab.ai/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="ZeonLab">
+<meta property="og:url" content="https://zeonlab.ai/">
+<meta property="og:description" content="A research lab working on causal reasoning about investments, and on what it takes to score such reasoning honestly.">
+<meta name="color-scheme" content="light dark">
+<!-- Favicon inline as a data URI. Nothing on this page is fetched from a
+     network: no web font, no CDN, no analytics, no external image. -->
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%2312796A'/><path d='M9.5 10.5h13l-13 11h13' fill='none' stroke='%23ffffff' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/></svg>">
+<style>
+/* Palette shared with the reading-room pages, so the two surfaces read as
+   siblings. One deliberate divergence: --ink3 is darkened in light mode
+   (#6C7689 -> #636D80) because the reading-room value measures 4.12:1 on
+   --bg and this page holds itself to 4.5:1 on every text pair. */
+:root{
+  --bg:#F1F3F7; --s:#FFFFFF; --ln:#C5CBD9; --ln2:#DCE0E9;
+  --ink:#131926; --ink2:#454F63; --ink3:#636D80;
+  --acc:#12796A; --blue:#1E5AA8;
+  --mono:ui-monospace,"Cascadia Mono",Consolas,Menlo,monospace;
+  --sans:ui-sans-serif,system-ui,"Segoe UI",-apple-system,Helvetica,Arial,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#0A0F19; --s:#121926; --ln:#2F3A50; --ln2:#212A3B;
+  --ink:#E5EAF3; --ink2:#A4AFC5; --ink3:#7A8599;
+  --acc:#3FC3AC; --blue:#6FA8E8;
+}}
+
+*{box-sizing:border-box}
+html,body{max-width:100%;overflow-x:hidden}
+body{
+  margin:0;background:var(--bg);color:var(--ink);
+  font:15px/1.65 var(--sans);
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+}
+.wrap{max-width:760px;margin:0 auto;padding:44px 22px 64px}
+
+/* Keyboard entry: visible skip target, and a focus ring nothing suppresses. */
+.skip{position:absolute;left:-9999px;top:0}
+.skip:focus{
+  left:0;z-index:2;display:inline-block;margin:8px;padding:8px 12px;
+  background:var(--s);color:var(--ink);border:1px solid var(--acc);
+  border-radius:5px;font:600 13px/1 var(--sans);text-decoration:none;
+}
+a:focus-visible,.skip:focus-visible{outline:2px solid var(--acc);outline-offset:3px;border-radius:2px}
+
+.kick{
+  font-family:var(--mono);font-size:11px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--ink3);margin:0;
+}
+h1{
+  font-size:clamp(28px,6vw,42px);line-height:1.1;letter-spacing:-.02em;
+  margin:10px 0 0;font-weight:650;
+}
+.lede{
+  color:var(--ink2);font-size:clamp(15.5px,2.1vw,17.5px);line-height:1.6;
+  margin:18px 0 0;max-width:60ch;
+}
+header{border-bottom:1px solid var(--ln);padding-bottom:26px}
+
+section{margin-top:34px}
+h2{
+  font-family:var(--mono);font-size:11px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--ink3);font-weight:500;
+  margin:0 0 10px;
+}
+p{margin:0 0 15px;max-width:66ch;color:var(--ink2);overflow-wrap:break-word}
+p:last-child{margin-bottom:0}
+em{font-style:italic;color:var(--ink)}
+
+/* The contact address is set in the markup below and is a real, receiving
+   mailbox; the contract test refuses any address that is shaped like a
+   stand-in. */
+.slot{
+  font-family:var(--mono);font-size:.92em;color:var(--ink);
+  background:var(--s);border:1px dashed var(--ln);border-radius:3px;
+  padding:1px 6px;overflow-wrap:anywhere;
+}
+a{color:var(--blue)}
+
+footer{
+  border-top:1px solid var(--ln2);margin-top:44px;padding-top:16px;
+  font-family:var(--mono);font-size:11.5px;letter-spacing:.04em;
+  color:var(--ink3);
+}
+
+@media (max-width:430px){
+  .wrap{padding:32px 17px 52px}
+  body{font-size:14.5px}
+  section{margin-top:28px}
+}
+@media print{
+  body{background:#fff;color:#000}
+  .skip{display:none}
+  .wrap{max-width:none;padding:0}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<div class="wrap">
+
+<header>
+  <p class="kick">Research lab</p>
+  <h1>ZeonLab</h1>
+  <p class="lede">A research lab working on causal reasoning about investments:
+  how a machine can hold a structural account of why an asset moves, keep that
+  account calibrated against thin evidence, and then be graded on it under a
+  rule it did not write.</p>
+</header>
+
+<main id="main">
+
+<section aria-labelledby="programme">
+<h2 id="programme">The programme</h2>
+
+<p>The premise runs against the grain of most machine learning applied to
+markets. The standard move learns a mapping from a large sample — many
+instruments, many periods, a function fitted to whatever regularity survives —
+and it works where the sample is large and the world sits still. The questions
+that decide an investment are neither. Whether a regulator approves a filing,
+whether a capacity cycle has turned, whether a central bank has changed its
+reaction function: the informative precedents number in the dozens, and the
+episodes nearest in time are often the least like the present.</p>
+
+<p>So we begin from the other end. The structure is assumed up front — a causal
+topology of drivers, entities, themes and archetypes, with edges stating what
+propagates to what — and observation is given a narrower job: not to discover
+that structure but to calibrate the latent quantities inside it, how strong a
+driver is now, how much weight an edge carries, what stage a theme has reached.
+The familiar instance of the manoeuvre is implied volatility. Assume a
+diffusion, observe a handful of quoted contracts, back out the one parameter
+that reconciles the assumed structure with the market, and the whole surface
+follows at strikes nobody ever quoted. None of that is a pattern fitted to
+history; the leverage comes from having committed to a structure before looking.
+The same shape recurs in the world-model line of machine learning research,
+where an encoder and a predictor are posited and sparse pairs infer the latents
+that hold the structure together. Our subject is that manoeuvre applied to
+causal reasoning about investments, with a language model doing the
+inference.</p>
+
+<p>The hard part is that a topology assumed once does not stay true, and a
+structure calibrated straight through a regime break is worse than none, because
+it is confidently wrong. Half the work is therefore about the validity envelope
+rather than the estimate: deciding whether a contradiction is noise, an
+overshoot, a transition or a genuinely new regime; storing every edge with the
+horizon and the regime over which it is claimed to hold; and treating the lab's
+own published conclusions as part of the dynamics they describe, since a view
+that is acted on has stopped being an observation of an independent world.</p>
+
+<p>A system that reasons in prose can be argued with but not scored, so an
+unusual share of the effort goes into grading rather than into performance.
+Claims are stored as dated commitments whose resolution criterion was fixed
+before the fact. A backtest driven by a language model over any window inside
+that model's own training period is contaminated by construction — the weights
+may already hold the outcome — so every decision carries a measure of how much
+it knew that it should not have known, and the result is discounted by it. The
+scoring code has a verdict meaning <em>not evaluable</em>, and it is not
+decorative: where the discount is itself uncalibrated, or the adjusted interval
+straddles zero skill, a report must say that no skill claim is defensible rather
+than publish the number it happens to hold. That refusal is why no performance
+figure appears anywhere on this page, and we would sooner defend the refusal
+than a figure.</p>
+</section>
+
+<section aria-labelledby="currently">
+<h2 id="currently">Currently</h2>
+
+<p>The line under way is forecasting. A milestone — a filing approved, a plant at
+volume production, a policy rate moved at a named meeting — is stored not as a
+probability attached to a date but as a distribution over time to occurrence
+with an explicit mass on <em>never</em>, because the collapsed scalar cannot be
+expanded back into the law it came from, and a book that re-marks weekly asks
+every week a question the scalar cannot answer. Base rates are retrieved from a
+reference class of historical episodes and never fitted from the episode being
+forecast; the present situation enters only through a multiplier; and any
+surface showing a hazard must print beside it how much of that number is prior
+rather than evidence. Running alongside it is the contamination work, written up
+with its identification strategy and the out-of-sample gate that downgrades the
+discount when the discount cannot itself be validated. Both are working papers,
+and they sit in a reading room that stays invitation-only for now. What they
+describe runs on paper positions: it manages no capital and routes no orders.</p>
+</section>
+
+<section aria-labelledby="contact">
+<h2 id="contact">Contact</h2>
+
+<p>There is nothing here to sign up for. If this sits close to your own work —
+small-sample causal inference, scoring judgemental forecasts, contamination in
+model-driven backtests — write to <a href="mailto:admin@zeonlab.ai"><span class="slot">admin@zeonlab.ai</span></a>.</p>
+</section>
+
+</main>
+
+<footer>&copy; 2026 ZeonLab</footer>
+
+</div>
+</body>
+</html>

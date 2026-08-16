@@ -1,0 +1,99 @@
+# zeonlab.ai publishes from a merge to main. Nothing is uploaded by hand.
+#
+# Direction of trust is deliberate: this workflow pushes to Cloudflare Pages
+# with a token that can do exactly one thing (publish Pages on one account),
+# rather than granting Cloudflare "connect to Git" access. Cloudflare sees the
+# built bytes and nothing else. The repository is public, so there is nothing
+# here a reader could not already fetch from the site itself.
+#
+# Three gates, in order, and each one refuses rather than warns:
+#   1. the contract — every servable file is public-safe (no internal paths,
+#      no CJK, no fetched subresources, no fake contact address, CSP agrees
+#      with the page);
+#   2. the deploy — wrangler direct upload of site/ only (DEPLOY.md is a
+#      repository document and is not in site/, so it cannot be served);
+#   3. the verification — fetch https://zeonlab.ai/ from OUTSIDE and require
+#      the raw served bytes to hash to the committed file. Cloudflare may
+#      inject its analytics beacon at the edge for some clients; exactly that
+#      one injection is stripped before comparing, and the pass line says
+#      whether it was needed. Any other difference fails.
+name: publish
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "site/**"
+      - "tests/**"
+      - ".github/workflows/publish.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: publish-zeonlab-ai
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: contract - every servable file is public-safe
+        run: |
+          python -m pip install --quiet pytest
+          python -m pytest tests/ -q -p no:randomly
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: publish to Cloudflare Pages
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_PAGES_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+          if [ -z "${CLOUDFLARE_API_TOKEN}" ] || [ -z "${CLOUDFLARE_ACCOUNT_ID}" ]; then
+            echo "::error::CLOUDFLARE_PAGES_TOKEN / CLOUDFLARE_ACCOUNT_ID not set - refusing to publish (this is not a pass)"
+            exit 2
+          fi
+          # A secret pasted through a pipe can carry a trailing newline, which
+          # wrangler rejects as an illegal Authorization character. Trim, and
+          # refuse if anything non-token remains, so a bad paste fails here.
+          export CLOUDFLARE_API_TOKEN="$(printf '%s' "$CLOUDFLARE_API_TOKEN" | tr -d '[:space:]')"
+          export CLOUDFLARE_ACCOUNT_ID="$(printf '%s' "$CLOUDFLARE_ACCOUNT_ID" | tr -d '[:space:]')"
+          echo "$CLOUDFLARE_ACCOUNT_ID" | grep -Eq '^[0-9a-f]{32}$' || { echo "::error::malformed account id"; exit 2; }
+          npx --yes wrangler@4 pages deploy site \
+            --project-name zeonlab-site --branch main \
+            --commit-hash "${GITHUB_SHA}" --commit-dirty=false
+
+      - name: verify from outside - served bytes equal committed bytes
+        run: |
+          python - <<'PY'
+          import hashlib, re, sys, time, urllib.request
+          expected = hashlib.sha256(open("site/index.html", "rb").read()).hexdigest()
+          beacon = re.compile(rb'<script[^>]*static\.cloudflareinsights\.com[^>]*></script>')
+          for attempt in range(1, 9):
+              time.sleep(15)
+              try:
+                  req = urllib.request.Request(
+                      f"https://zeonlab.ai/?v={int(time.time())}",
+                      headers={"User-Agent": "zeonlab-publish-verify/1", "Cache-Control": "no-cache"})
+                  raw = urllib.request.urlopen(req, timeout=30).read()
+              except Exception as e:
+                  print(f"attempt {attempt}: {type(e).__name__}: {e}"); continue
+              stripped = beacon.sub(b"", raw)
+              got = hashlib.sha256(stripped).hexdigest()
+              if got == expected:
+                  why = "after stripping the Cloudflare beacon injection" if stripped != raw else "byte-identical"
+                  print(f"zeonlab.ai serves the committed bytes ({why}), sha256 {expected}")
+                  sys.exit(0)
+              print(f"attempt {attempt}: sha mismatch (got {got[:12]} want {expected[:12]}, {len(raw)} bytes)")
+          print("::error::zeonlab.ai does not serve the committed bytes after 8 attempts")
+          sys.exit(1)
+          PY

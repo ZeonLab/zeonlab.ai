@@ -1,0 +1,20 @@
+# Cloudflare Pages response headers.
+#
+# The CSP is not decoration. The page claims to fetch nothing; this makes the
+# browser enforce that claim rather than take our word for it. If a future edit
+# introduces a web font, a CDN script or an analytics beacon, the browser blocks
+# it and the console goes red -- which is the failure mode we want, because a
+# silent external request on this page is the defect.
+#
+#   default-src 'none'      nothing may be fetched, of any kind
+#   style-src 'unsafe-inline'  the stylesheet is inline in the document
+#   img-src data:           the favicon is an inline data URI
+#   base-uri / form-action / frame-ancestors 'none'  no base hijack, no form
+#                           posting, no embedding of this page in a frame
+
+/*
+  Content-Security-Policy: default-src 'none'; style-src 'unsafe-inline'; img-src data:; base-uri 'none'; form-action 'none'; frame-ancestors 'none'
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: no-referrer
+  Cross-Origin-Opener-Policy: same-origin
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
