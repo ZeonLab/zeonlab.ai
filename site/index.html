@@ -3,203 +3,336 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>ZeonLab</title>
-<meta name="description" content="ZeonLab is a research lab working on causal reasoning about investments: holding a structural account of why an asset moves, calibrating it against thin evidence, and grading it under a rule it did not write.">
+<title>ZeonLab — Applied AI &amp; Investment Research</title>
+<meta name="description" content="ZeonLab builds focused AI applications and research systems for consequential financial decisions.">
 <link rel="canonical" href="https://zeonlab.ai/">
 <meta property="og:type" content="website">
-<meta property="og:title" content="ZeonLab">
+<meta property="og:title" content="ZeonLab — Applied AI &amp; Investment Research">
 <meta property="og:url" content="https://zeonlab.ai/">
-<meta property="og:description" content="A research lab working on causal reasoning about investments, and on what it takes to score such reasoning honestly.">
+<meta property="og:description" content="ZeonLab builds focused AI applications and research systems for consequential financial decisions.">
 <meta name="color-scheme" content="light dark">
-<!-- Favicon inline as a data URI. Nothing on this page is fetched from a
-     network: no web font, no CDN, no analytics, no external image. -->
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%2312796A'/><path d='M9.5 10.5h13l-13 11h13' fill='none' stroke='%23ffffff' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/></svg>">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%23111815'/><path d='M8 10h16L8 22h16' fill='none' stroke='%23b9f33d' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/></svg>">
 <style>
-/* Palette shared with the reading-room pages, so the two surfaces read as
-   siblings. One deliberate divergence: --ink3 is darkened in light mode
-   (#6C7689 -> #636D80) because the reading-room value measures 4.12:1 on
-   --bg and this page holds itself to 4.5:1 on every text pair. */
-:root{
-  --bg:#F1F3F7; --s:#FFFFFF; --ln:#C5CBD9; --ln2:#DCE0E9;
-  --ink:#131926; --ink2:#454F63; --ink3:#636D80;
-  --acc:#12796A; --blue:#1E5AA8;
-  --mono:ui-monospace,"Cascadia Mono",Consolas,Menlo,monospace;
-  --sans:ui-sans-serif,system-ui,"Segoe UI",-apple-system,Helvetica,Arial,sans-serif;
+:root {
+  --bg:#f2f0e9; --panel:#e7e4da; --paper:#faf9f5;
+  --ink:#111815; --muted:#4b5852; --soft:#64706a;
+  --paper-ink:#111815; --paper-muted:#4b5852;
+  --accent:#b9f33d; --accent-ink:#111815; --line:#aab1aa;
 }
-@media (prefers-color-scheme:dark){:root{
-  --bg:#0A0F19; --s:#121926; --ln:#2F3A50; --ln2:#212A3B;
-  --ink:#E5EAF3; --ink2:#A4AFC5; --ink3:#7A8599;
-  --acc:#3FC3AC; --blue:#6FA8E8;
+@media (prefers-color-scheme:dark) {:root {
+  --bg:#0b110f; --panel:#111a17; --paper:#e9e8e1;
+  --ink:#f3f4ef; --muted:#b3bdb7; --soft:#96a19b;
+  --paper-ink:#111815; --paper-muted:#4b5852;
+  --accent:#b9f33d; --accent-ink:#111815; --line:#35413c;
 }}
 
-*{box-sizing:border-box}
-html,body{max-width:100%;overflow-x:hidden}
-body{
-  margin:0;background:var(--bg);color:var(--ink);
-  font:15px/1.65 var(--sans);
-  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+* { box-sizing:border-box; }
+html, body { overflow-x:clip; }
+html { scroll-behavior:smooth; }
+body {
+  margin:0; background:var(--bg); color:var(--ink);
+  font:400 16px/1.6 ui-sans-serif,system-ui,"Segoe UI",Arial,sans-serif;
+  -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
 }
-.wrap{max-width:760px;margin:0 auto;padding:44px 22px 64px}
+a { color:inherit; }
+a:focus-visible { outline:3px solid var(--accent); outline-offset:4px; }
+.skip {
+  position:absolute; z-index:10; top:10px; left:10px; padding:10px 14px;
+  background:var(--accent); color:var(--accent-ink); font-weight:700;
+  transform:translateY(-160%); transition:transform .18s ease;
+}
+.skip:focus { transform:translateY(0); }
+.shell { width:min(1180px,calc(100% - 48px)); margin:0 auto; }
 
-/* Keyboard entry: visible skip target, and a focus ring nothing suppresses. */
-.skip{position:absolute;left:-9999px;top:0}
-.skip:focus{
-  left:0;z-index:2;display:inline-block;margin:8px;padding:8px 12px;
-  background:var(--s);color:var(--ink);border:1px solid var(--acc);
-  border-radius:5px;font:600 13px/1 var(--sans);text-decoration:none;
+.site-header {
+  min-height:88px; display:flex; align-items:center; justify-content:space-between;
+  gap:28px; border-bottom:1px solid var(--line);
 }
-a:focus-visible,.skip:focus-visible{outline:2px solid var(--acc);outline-offset:3px;border-radius:2px}
+.wordmark {
+  text-decoration:none; font-size:1.2rem; font-weight:800; letter-spacing:-.04em;
+}
+.wordmark::after {
+  content:""; display:inline-block; width:.52em; height:.52em; margin-left:.36em;
+  border-radius:50%; background:var(--accent);
+}
+.site-nav { display:flex; align-items:center; gap:clamp(18px,3vw,38px); }
+.site-nav a {
+  color:var(--muted); font-size:.78rem; font-weight:700; letter-spacing:.12em;
+  text-decoration:none; text-transform:uppercase;
+}
+.site-nav a:last-child {
+  padding:9px 13px; border:1px solid var(--line); color:var(--ink);
+}
+.site-nav a:hover { color:var(--ink); }
 
-.kick{
-  font-family:var(--mono);font-size:11px;letter-spacing:.16em;
-  text-transform:uppercase;color:var(--ink3);margin:0;
+main { display:block; }
+.hero {
+  display:grid; grid-template-columns:minmax(0,1.08fr) minmax(320px,.92fr);
+  gap:clamp(48px,8vw,108px); align-items:center; min-height:680px;
+  padding:92px 0 84px;
 }
-h1{
-  font-size:clamp(28px,6vw,42px);line-height:1.1;letter-spacing:-.02em;
-  margin:10px 0 0;font-weight:650;
+.eyebrow {
+  margin:0 0 22px; color:var(--muted); font-size:.76rem; font-weight:800;
+  letter-spacing:.16em; text-transform:uppercase;
 }
-.lede{
-  color:var(--ink2);font-size:clamp(15.5px,2.1vw,17.5px);line-height:1.6;
-  margin:18px 0 0;max-width:60ch;
+h1,h2,h3,p { margin-top:0; }
+h1 {
+  max-width:10ch; margin-bottom:30px; font-family:Georgia,"Times New Roman",serif;
+  font-size:clamp(3.55rem,7.3vw,7.25rem); font-weight:400; letter-spacing:-.065em;
+  line-height:.88;
 }
-header{border-bottom:1px solid var(--ln);padding-bottom:26px}
+.hero-copy { max-width:56ch; margin:0; color:var(--muted); font-size:1.08rem; }
+.hero-copy strong { color:var(--ink); font-weight:650; }
 
-section{margin-top:34px}
-h2{
-  font-family:var(--mono);font-size:11px;letter-spacing:.16em;
-  text-transform:uppercase;color:var(--ink3);font-weight:500;
-  margin:0 0 10px;
+.signal-map {
+  position:relative; isolation:isolate; min-height:500px; overflow:hidden;
+  border:1px solid var(--line); background:var(--panel);
 }
-p{margin:0 0 15px;max-width:66ch;color:var(--ink2);overflow-wrap:break-word}
-p:last-child{margin-bottom:0}
-em{font-style:italic;color:var(--ink)}
+.signal-map::before {
+  content:""; position:absolute; inset:0;
+  background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);
+  background-size:48px 48px; opacity:.42;
+}
+.signal-map::after {
+  content:"SIGNAL / DECISION"; position:absolute; left:24px; bottom:18px;
+  color:var(--muted); font:700 .68rem/1 ui-monospace,"Cascadia Mono",Consolas,monospace;
+  letter-spacing:.14em;
+}
+.map-line { position:absolute; z-index:1; height:1px; background:var(--ink); transform-origin:left center; opacity:.72; }
+.line-a { width:55%; left:12%; top:69%; transform:rotate(-31deg); }
+.line-b { width:45%; left:43%; top:40%; transform:rotate(28deg); }
+.line-c { width:43%; left:18%; top:36%; transform:rotate(17deg); }
+.line-d { width:35%; left:53%; top:63%; transform:rotate(-54deg); }
+.map-node {
+  position:absolute; z-index:2; width:17px; height:17px; border:4px solid var(--panel);
+  border-radius:50%; background:var(--ink); box-shadow:0 0 0 1px var(--ink);
+}
+.node-a { left:11%; top:66%; }
+.node-b { left:42%; top:37%; }
+.node-c { left:72%; top:55%; }
+.node-d { left:84%; top:29%; }
+.node-e { left:29%; top:42%; }
+.map-node.accent {
+  width:28px; height:28px; border-color:var(--panel); background:var(--accent);
+  box-shadow:0 0 0 1px var(--accent),0 0 0 18px color-mix(in srgb,var(--accent) 12%,transparent);
+  animation:signal 4s ease-in-out infinite;
+}
+@keyframes signal { 50% { box-shadow:0 0 0 1px var(--accent),0 0 0 32px color-mix(in srgb,var(--accent) 3%,transparent); } }
 
-/* The contact address is set in the markup below and is a real, receiving
-   mailbox; the contract test refuses any address that is shaped like a
-   stand-in. */
-.slot{
-  font-family:var(--mono);font-size:.92em;color:var(--ink);
-  background:var(--s);border:1px dashed var(--ln);border-radius:3px;
-  padding:1px 6px;overflow-wrap:anywhere;
+.section { padding:105px 0; border-top:1px solid var(--line); }
+.section-head {
+  display:grid; grid-template-columns:minmax(0,.65fr) minmax(0,1.35fr);
+  gap:48px; align-items:start; margin-bottom:58px;
 }
-a{color:var(--blue)}
+.section-label {
+  margin:0; color:var(--soft); font-size:.74rem; font-weight:800;
+  letter-spacing:.15em; text-transform:uppercase;
+}
+h2 {
+  max-width:19ch; margin-bottom:0; font-family:Georgia,"Times New Roman",serif;
+  font-size:clamp(2.2rem,4vw,4.2rem); font-weight:400; letter-spacing:-.045em;
+  line-height:1.02;
+}
+.cards { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; }
+.card {
+  min-height:360px; padding:38px; display:flex; flex-direction:column;
+  background:var(--paper); color:var(--paper-ink);
+}
+.card-index {
+  margin-bottom:auto; color:var(--paper-muted); font:700 .72rem/1 ui-monospace,"Cascadia Mono",Consolas,monospace;
+  letter-spacing:.12em;
+}
+.card h3 { margin-bottom:18px; font-size:1.65rem; letter-spacing:-.03em; }
+.card p { margin-bottom:0; color:var(--paper-muted); }
 
-footer{
-  border-top:1px solid var(--ln2);margin-top:44px;padding-top:16px;
-  font-family:var(--mono);font-size:11.5px;letter-spacing:.04em;
-  color:var(--ink3);
+.method-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); }
+.method-step { min-height:270px; padding:30px 30px 20px; border-left:1px solid var(--line); }
+.method-step:last-child { border-right:1px solid var(--line); }
+.step-number {
+  display:block; margin-bottom:72px; color:var(--soft);
+  font:700 .72rem/1 ui-monospace,"Cascadia Mono",Consolas,monospace;
 }
+.method-step h3 { margin-bottom:12px; font-size:1.22rem; }
+.method-step p { margin-bottom:0; color:var(--muted); font-size:.94rem; }
 
-@media (max-width:430px){
-  .wrap{padding:32px 17px 52px}
-  body{font-size:14.5px}
-  section{margin-top:28px}
+.principles {
+  width:auto; padding:78px max(24px,calc((100vw - 1180px)/2));
+  background:var(--accent); color:var(--accent-ink);
 }
-@media print{
-  body{background:#fff;color:#000}
-  .skip{display:none}
-  .wrap{max-width:none;padding:0}
+.principles-inner { display:grid; grid-template-columns:1.1fr 1.9fr; gap:70px; }
+.principles h2 { font-size:clamp(2.1rem,3.8vw,3.8rem); }
+.principle-list { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:28px; }
+.principle-list article { border-top:1px solid var(--accent-ink); padding-top:16px; }
+.principle-list h3 { margin-bottom:9px; font-size:.91rem; }
+.principle-list p { margin-bottom:0; font-size:.86rem; line-height:1.5; }
+
+.contact { display:grid; grid-template-columns:1.3fr .7fr; gap:70px; align-items:end; }
+.contact h2 { max-width:12ch; }
+.contact-copy { color:var(--muted); }
+.contact-copy p { margin-bottom:26px; }
+.contact-link {
+  display:inline-flex; align-items:center; justify-content:space-between; gap:26px;
+  width:100%; padding:18px 20px; background:var(--accent); color:var(--accent-ink);
+  font-weight:800; text-decoration:none;
+}
+.contact-link::after { content:"↗"; font-size:1.3rem; }
+.slot { overflow-wrap:anywhere; }
+
+.site-footer {
+  display:grid; grid-template-columns:1fr auto; gap:40px; align-items:end;
+  padding:28px 0 42px; border-top:1px solid var(--line); color:var(--soft);
+  font-size:.76rem;
+}
+.site-footer p { margin:0; }
+.footer-mark { color:var(--ink); font-weight:800; }
+
+@media (max-width:760px) {
+  .shell { width:min(100% - 32px,1180px); }
+  .site-header { min-height:74px; }
+  .site-nav { gap:14px; }
+  .site-nav a { font-size:.67rem; }
+  .site-nav a:nth-child(2) { display:none; }
+  .hero,.section-head,.cards,.method-grid,.contact,.site-footer { grid-template-columns:1fr; }
+  .hero { min-height:auto; gap:52px; padding:72px 0; }
+  h1 { font-size:clamp(3.4rem,17vw,5.4rem); }
+  .signal-map { min-height:380px; }
+  .section { padding:78px 0; }
+  .section-head { gap:24px; margin-bottom:40px; }
+  .card { min-height:320px; padding:30px; }
+  .method-step { min-height:0; padding:26px 20px 30px; border-top:1px solid var(--line); border-right:1px solid var(--line); }
+  .step-number { margin-bottom:42px; }
+  .principles { padding:64px 16px; }
+  .principles-inner,.principle-list { grid-template-columns:1fr; gap:38px; }
+  .principle-list { gap:24px; }
+  .contact { gap:36px; }
+  .site-footer { gap:12px; align-items:start; }
+}
+@media (max-width:430px) {
+  .site-nav a:first-child { display:none; }
+  .signal-map { min-height:330px; }
+}
+@media (prefers-reduced-motion:reduce) {
+  *,*::before,*::after { animation-duration:.01ms!important;
+    animation-iteration-count:1!important; transition-duration:.01ms!important; }
+  html { scroll-behavior:auto; }
+}
+@media print {
+  body { background:#fff; color:#000; }
+  .skip,.signal-map { display:none; }
+  .hero { min-height:auto; }
 }
 </style>
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
-<div class="wrap">
 
-<header>
-  <p class="kick">Research lab</p>
-  <h1>ZeonLab</h1>
-  <p class="lede">A research lab working on causal reasoning about investments:
-  how a machine can hold a structural account of why an asset moves, keep that
-  account calibrated against thin evidence, and then be graded on it under a
-  rule it did not write.</p>
+<header class="site-header shell">
+  <a class="wordmark" href="#main" aria-label="ZeonLab, home">ZeonLab</a>
+  <nav class="site-nav" aria-label="Primary navigation">
+    <a href="#capabilities">Capabilities</a>
+    <a href="#method">Method</a>
+    <a href="#contact">Contact</a>
+  </nav>
 </header>
 
 <main id="main">
+  <section class="hero shell" aria-labelledby="hero-title">
+    <div>
+      <p class="eyebrow">Applied AI / Investment Research</p>
+      <h1 id="hero-title">AI for decisions that carry weight.</h1>
+      <p class="hero-copy"><strong>ZeonLab builds focused AI applications and research systems</strong> for consequential financial decisions. We bring technical design and disciplined inquiry together wherever evidence is incomplete, uncertainty matters, and conclusions need to withstand scrutiny.</p>
+    </div>
+    <div class="signal-map" aria-hidden="true">
+      <span class="map-line line-a"></span>
+      <span class="map-line line-b"></span>
+      <span class="map-line line-c"></span>
+      <span class="map-line line-d"></span>
+      <span class="map-node node-a"></span>
+      <span class="map-node node-b accent"></span>
+      <span class="map-node node-c"></span>
+      <span class="map-node node-d"></span>
+      <span class="map-node node-e"></span>
+    </div>
+  </section>
 
-<section aria-labelledby="programme">
-<h2 id="programme">The programme</h2>
+  <section class="section shell" id="capabilities" aria-labelledby="capabilities-title">
+    <div class="section-head">
+      <p class="section-label">01 / Capabilities</p>
+      <h2 id="capabilities-title">Two disciplines. One decision standard.</h2>
+    </div>
+    <div class="cards">
+      <article class="card">
+        <p class="card-index">A / SYSTEMS</p>
+        <h3>AI Applications</h3>
+        <p>Focused software work for research, analysis, and complex operational judgement. We shape interfaces, reasoning workflows, and evaluation around a defined decision—keeping human oversight and the limits of the evidence visible.</p>
+      </article>
+      <article class="card">
+        <p class="card-index">B / INQUIRY</p>
+        <h3>Investment Research</h3>
+        <p>Research systems that organize causal claims, time-sensitive evidence, and explicit uncertainty. The aim is not a louder forecast, but a decision record whose assumptions, provenance, and resolution can be examined.</p>
+      </article>
+    </div>
+  </section>
 
-<p>The premise runs against the grain of most machine learning applied to
-markets. The standard move learns a mapping from a large sample — many
-instruments, many periods, a function fitted to whatever regularity survives —
-and it works where the sample is large and the world sits still. The questions
-that decide an investment are neither. Whether a regulator approves a filing,
-whether a capacity cycle has turned, whether a central bank has changed its
-reaction function: the informative precedents number in the dozens, and the
-episodes nearest in time are often the least like the present.</p>
+  <section class="section shell" id="method" aria-labelledby="method-title">
+    <div class="section-head">
+      <p class="section-label">02 / Method</p>
+      <h2 id="method-title">A loop built for consequential work.</h2>
+    </div>
+    <div class="method-grid">
+      <article class="method-step">
+        <span class="step-number">01</span>
+        <h3>Observe</h3>
+        <p>Frame the decision, collect relevant evidence, and preserve what was knowable at the time.</p>
+      </article>
+      <article class="method-step">
+        <span class="step-number">02</span>
+        <h3>Reason</h3>
+        <p>Connect evidence to an explicit model, expose assumptions, and distinguish signal from inference.</p>
+      </article>
+      <article class="method-step">
+        <span class="step-number">03</span>
+        <h3>Verify</h3>
+        <p>Test claims against defined criteria, record uncertainty, and keep accountable judgement in the loop.</p>
+      </article>
+    </div>
+  </section>
 
-<p>So we begin from the other end. The structure is assumed up front — a causal
-topology of drivers, entities, themes and archetypes, with edges stating what
-propagates to what — and observation is given a narrower job: not to discover
-that structure but to calibrate the latent quantities inside it, how strong a
-driver is now, how much weight an edge carries, what stage a theme has reached.
-The familiar instance of the manoeuvre is implied volatility. Assume a
-diffusion, observe a handful of quoted contracts, back out the one parameter
-that reconciles the assumed structure with the market, and the whole surface
-follows at strikes nobody ever quoted. None of that is a pattern fitted to
-history; the leverage comes from having committed to a structure before looking.
-The same shape recurs in the world-model line of machine learning research,
-where an encoder and a predictor are posited and sparse pairs infer the latents
-that hold the structure together. Our subject is that manoeuvre applied to
-causal reasoning about investments, with a language model doing the
-inference.</p>
+  <section class="principles" id="principles" aria-labelledby="principles-title">
+    <div class="principles-inner">
+      <h2 id="principles-title">Discipline is part of the design.</h2>
+      <div class="principle-list">
+        <article>
+          <h3>Evidence before assertion</h3>
+          <p>Claims should trace back to sources and stated assumptions.</p>
+        </article>
+        <article>
+          <h3>Uncertainty made explicit</h3>
+          <p>Limits, alternatives, and unresolved questions belong in the record.</p>
+        </article>
+        <article>
+          <h3>Human accountability</h3>
+          <p>AI can extend analysis; responsibility for decisions remains human.</p>
+        </article>
+      </div>
+    </div>
+  </section>
 
-<p>The hard part is that a topology assumed once does not stay true, and a
-structure calibrated straight through a regime break is worse than none, because
-it is confidently wrong. Half the work is therefore about the validity envelope
-rather than the estimate: deciding whether a contradiction is noise, an
-overshoot, a transition or a genuinely new regime; storing every edge with the
-horizon and the regime over which it is claimed to hold; and treating the lab's
-own published conclusions as part of the dynamics they describe, since a view
-that is acted on has stopped being an observation of an independent world.</p>
-
-<p>A system that reasons in prose can be argued with but not scored, so an
-unusual share of the effort goes into grading rather than into performance.
-Claims are stored as dated commitments whose resolution criterion was fixed
-before the fact. A backtest driven by a language model over any window inside
-that model's own training period is contaminated by construction — the weights
-may already hold the outcome — so every decision carries a measure of how much
-it knew that it should not have known, and the result is discounted by it. The
-scoring code has a verdict meaning <em>not evaluable</em>, and it is not
-decorative: where the discount is itself uncalibrated, or the adjusted interval
-straddles zero skill, a report must say that no skill claim is defensible rather
-than publish the number it happens to hold. That refusal is why no performance
-figure appears anywhere on this page, and we would sooner defend the refusal
-than a figure.</p>
-</section>
-
-<section aria-labelledby="currently">
-<h2 id="currently">Currently</h2>
-
-<p>The line under way is forecasting. A milestone — a filing approved, a plant at
-volume production, a policy rate moved at a named meeting — is stored not as a
-probability attached to a date but as a distribution over time to occurrence
-with an explicit mass on <em>never</em>, because the collapsed scalar cannot be
-expanded back into the law it came from, and a book that re-marks weekly asks
-every week a question the scalar cannot answer. Base rates are retrieved from a
-reference class of historical episodes and never fitted from the episode being
-forecast; the present situation enters only through a multiplier; and any
-surface showing a hazard must print beside it how much of that number is prior
-rather than evidence. Running alongside it is the contamination work, written up
-with its identification strategy and the out-of-sample gate that downgrades the
-discount when the discount cannot itself be validated. Both are working papers,
-and they sit in a reading room that stays invitation-only for now. What they
-describe runs on paper positions: it manages no capital and routes no orders.</p>
-</section>
-
-<section aria-labelledby="contact">
-<h2 id="contact">Contact</h2>
-
-<p>There is nothing here to sign up for. If this sits close to your own work —
-small-sample causal inference, scoring judgemental forecasts, contamination in
-model-driven backtests — write to <a href="mailto:admin@zeonlab.ai"><span class="slot">admin@zeonlab.ai</span></a>.</p>
-</section>
-
+  <section class="section shell contact" id="contact" aria-labelledby="contact-title">
+    <div>
+      <p class="section-label">03 / Contact</p>
+      <h2 id="contact-title">Bring us a consequential question.</h2>
+    </div>
+    <div class="contact-copy">
+      <p>For research, product, or institutional collaboration, start with the decision you are trying to improve.</p>
+      <a class="contact-link" href="mailto:admin@zeonlab.ai"><span class="slot">admin@zeonlab.ai</span></a>
+    </div>
+  </section>
 </main>
 
-<footer>&copy; 2026 ZeonLab</footer>
-
-</div>
+<footer class="site-footer shell">
+  <p class="footer-mark">&copy; 2026 ZeonLab</p>
+  <p>Research and software work. Not investment advice. No performance offer.</p>
+</footer>
 </body>
 </html>
