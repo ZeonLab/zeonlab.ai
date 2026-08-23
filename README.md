@@ -24,7 +24,7 @@ portable Python command:
 ```powershell
 $env:PYTHONDONTWRITEBYTECODE='1'
 python -m pytest tests/ -q -p no:randomly
-python -m http.server 4173 --directory site
+python -m http.server 4173 --bind 127.0.0.1 --directory site
 ```
 
 On Windows, use the `py` launcher with the same `-m` arguments if `python` is

@@ -285,6 +285,16 @@ def test_internal_navigation_targets_resolve(served: str) -> None:
         assert re.search(rf'id="{re.escape(target)}"', served)
 
 
+def test_primary_navigation_links_are_never_hidden(served: str) -> None:
+    """Mobile layouts must retain every primary action in the tab order."""
+    hidden = re.findall(
+        r"\.(?:site-nav|nav-link)[^{]*\{[^}]*\bdisplay\s*:\s*none\b[^}]*\}",
+        served,
+        flags=re.I | re.S,
+    )
+    assert not hidden, f"primary navigation links hidden by CSS: {hidden}"
+
+
 def test_homepage_copy_is_concise(served: str) -> None:
     words = re.findall(r"[A-Za-z][A-Za-z'-]*", _visible_copy(served))
     assert 250 <= len(words) <= 700, len(words)
