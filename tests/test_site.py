@@ -263,6 +263,43 @@ def test_placeholder_appears_at_most_once(served: str) -> None:
         "the contact placeholder appears more than once; one slot, one home"
 
 
+def _visible_copy(served: str) -> str:
+    body = re.sub(r"<style.*?</style>", " ", served, flags=re.I | re.S)
+    body = re.sub(r"<!--.*?-->", " ", body, flags=re.S)
+    body = re.sub(r"<[^>]+>", " ", body)
+    return re.sub(r"\s+", " ", body).strip()
+
+
+def test_corporate_information_architecture(served: str) -> None:
+    for section_id in ("capabilities", "method", "principles", "contact"):
+        assert f'id="{section_id}"' in served
+    for heading in ("AI Applications", "Investment Research", "Observe",
+                    "Reason", "Verify"):
+        assert heading in served
+
+
+def test_internal_navigation_targets_resolve(served: str) -> None:
+    targets = re.findall(r'<a[^>]+href="#([^"]+)"', served)
+    assert {"main", "capabilities", "method", "contact"}.issubset(targets)
+    for target in targets:
+        assert re.search(rf'id="{re.escape(target)}"', served)
+
+
+def test_homepage_copy_is_concise(served: str) -> None:
+    words = re.findall(r"[A-Za-z][A-Za-z'-]*", _visible_copy(served))
+    assert 250 <= len(words) <= 700, len(words)
+
+
+def test_investment_boundary_is_explicit(served: str) -> None:
+    copy = _visible_copy(served).lower()
+    assert "not investment advice" in copy
+    assert "no performance offer" in copy
+
+
+def test_reduced_motion_is_supported(served: str) -> None:
+    assert re.search(r"@media\s*\(prefers-reduced-motion:\s*reduce\)", served)
+
+
 # --------------------------------------------------------------------------
 # 3. LEGIBILITY -- contrast, computed from the page's own tokens
 # --------------------------------------------------------------------------
@@ -305,11 +342,15 @@ def _tokens(served: str) -> dict[str, dict[str, str]]:
 # Every pair the page actually paints, foreground token against the surface it
 # sits on. Nothing here is decorative: each one carries body or label text.
 TEXT_PAIRS = [
-    ("ink", "bg"),    # headings, emphasis
-    ("ink2", "bg"),   # body prose, lede
-    ("ink3", "bg"),   # section labels, kicker, footer
-    ("blue", "bg"),   # links
-    ("ink", "s"),     # the contact slot chip
+    ("ink", "bg"),
+    ("muted", "bg"),
+    ("soft", "bg"),
+    ("accent", "bg"),
+    ("ink", "panel"),
+    ("muted", "panel"),
+    ("paper-ink", "paper"),
+    ("paper-muted", "paper"),
+    ("accent-ink", "accent"),
 ]
 
 AA_NORMAL = 4.5
