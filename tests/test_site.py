@@ -345,7 +345,6 @@ TEXT_PAIRS = [
     ("ink", "bg"),
     ("muted", "bg"),
     ("soft", "bg"),
-    ("accent", "bg"),
     ("ink", "panel"),
     ("muted", "panel"),
     ("paper-ink", "paper"),
