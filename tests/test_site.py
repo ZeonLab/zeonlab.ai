@@ -31,6 +31,7 @@ REPO = Path(__file__).resolve().parents[1]
 # bytes Cloudflare actually serves rather than only against the build.
 SITE = Path(os.environ.get("ZEONLAB_SITE") or (REPO / "site"))
 INDEX = SITE / "index.html"
+PUBLISH_WORKFLOW = REPO / ".github" / "workflows" / "publish.yml"
 
 
 # --------------------------------------------------------------------------
@@ -263,6 +264,84 @@ def test_placeholder_appears_at_most_once(served: str) -> None:
         "the contact placeholder appears more than once; one slot, one home"
 
 
+def _visible_copy(served: str) -> str:
+    body = re.sub(r"<style.*?</style>", " ", served, flags=re.I | re.S)
+    body = re.sub(r"<!--.*?-->", " ", body, flags=re.S)
+    body = re.sub(r"<[^>]+>", " ", body)
+    return re.sub(r"\s+", " ", body).strip()
+
+
+def test_corporate_information_architecture(served: str) -> None:
+    for section_id in ("capabilities", "method", "principles", "contact"):
+        assert f'id="{section_id}"' in served
+    for heading in ("AI Applications", "Investment Research", "Observe",
+                    "Reason", "Verify"):
+        assert heading in served
+
+
+def test_internal_navigation_targets_resolve(served: str) -> None:
+    targets = re.findall(r'<a[^>]+href="#([^"]+)"', served)
+    assert {"main", "capabilities", "method", "contact"}.issubset(targets)
+    for target in targets:
+        assert re.search(rf'id="{re.escape(target)}"', served)
+
+
+def test_primary_navigation_links_are_never_hidden(served: str) -> None:
+    """Mobile layouts must retain every primary action in the tab order."""
+    hidden = re.findall(
+        r"\.(?:site-nav|nav-link)[^{]*\{[^}]*\bdisplay\s*:\s*none\b[^}]*\}",
+        served,
+        flags=re.I | re.S,
+    )
+    assert not hidden, f"primary navigation links hidden by CSS: {hidden}"
+
+
+def test_narrow_primary_navigation_stays_legible_and_tappable(served: str) -> None:
+    """The 430px layout must not preserve navigation by shrinking it."""
+    narrow = served.split("@media (max-width:430px)", 1)[1].split(
+        "@media (prefers-reduced-motion:reduce)", 1
+    )[0]
+    assert re.search(r"\.site-header\s*\{[^}]*flex-wrap\s*:\s*wrap", narrow)
+    assert re.search(r"\.site-nav\s*\{[^}]*width\s*:\s*100%", narrow)
+
+    nav_rule = re.search(r"\.site-nav a\s*\{([^}]*)\}", narrow)
+    assert nav_rule, "narrow layout has no explicit primary-link sizing"
+    declarations = nav_rule.group(1)
+    font_size = re.search(r"font-size\s*:\s*([.\d]+)rem", declarations)
+    target_height = re.search(r"min-height\s*:\s*([.\d]+)px", declarations)
+    assert font_size and float(font_size.group(1)) >= 0.75
+    assert target_height and float(target_height.group(1)) >= 36
+
+
+def test_pull_requests_run_contract_without_publish_authority() -> None:
+    """PRs get a check; only a main-branch push may reach Cloudflare."""
+    workflow = PUBLISH_WORKFLOW.read_text(encoding="utf-8")
+    assert re.search(r"(?m)^\s{2}pull_request:\s*$", workflow)
+    assert re.search(r"(?m)^\s{2}contract:\s*$", workflow)
+
+    publish = workflow.split("  publish:", 1)[1]
+    assert re.search(r"(?m)^\s{4}needs:\s*contract\s*$", publish)
+    gate = re.search(r"(?m)^\s{4}if:\s*(.+)$", publish)
+    assert gate, "publish job has no event/ref authority gate"
+    assert "github.event_name == 'push'" in gate.group(1)
+    assert "github.ref == 'refs/heads/main'" in gate.group(1)
+
+
+def test_homepage_copy_is_concise(served: str) -> None:
+    words = re.findall(r"[A-Za-z][A-Za-z'-]*", _visible_copy(served))
+    assert 250 <= len(words) <= 700, len(words)
+
+
+def test_investment_boundary_is_explicit(served: str) -> None:
+    copy = _visible_copy(served).lower()
+    assert "not investment advice" in copy
+    assert "no performance offer" in copy
+
+
+def test_reduced_motion_is_supported(served: str) -> None:
+    assert re.search(r"@media\s*\(prefers-reduced-motion:\s*reduce\)", served)
+
+
 # --------------------------------------------------------------------------
 # 3. LEGIBILITY -- contrast, computed from the page's own tokens
 # --------------------------------------------------------------------------
@@ -305,11 +384,14 @@ def _tokens(served: str) -> dict[str, dict[str, str]]:
 # Every pair the page actually paints, foreground token against the surface it
 # sits on. Nothing here is decorative: each one carries body or label text.
 TEXT_PAIRS = [
-    ("ink", "bg"),    # headings, emphasis
-    ("ink2", "bg"),   # body prose, lede
-    ("ink3", "bg"),   # section labels, kicker, footer
-    ("blue", "bg"),   # links
-    ("ink", "s"),     # the contact slot chip
+    ("ink", "bg"),
+    ("muted", "bg"),
+    ("soft", "bg"),
+    ("ink", "panel"),
+    ("muted", "panel"),
+    ("paper-ink", "paper"),
+    ("paper-muted", "paper"),
+    ("accent-ink", "accent"),
 ]
 
 AA_NORMAL = 4.5
