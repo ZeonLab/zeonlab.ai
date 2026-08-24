@@ -31,6 +31,7 @@ REPO = Path(__file__).resolve().parents[1]
 # bytes Cloudflare actually serves rather than only against the build.
 SITE = Path(os.environ.get("ZEONLAB_SITE") or (REPO / "site"))
 INDEX = SITE / "index.html"
+PUBLISH_WORKFLOW = REPO / ".github" / "workflows" / "publish.yml"
 
 
 # --------------------------------------------------------------------------
@@ -293,6 +294,37 @@ def test_primary_navigation_links_are_never_hidden(served: str) -> None:
         flags=re.I | re.S,
     )
     assert not hidden, f"primary navigation links hidden by CSS: {hidden}"
+
+
+def test_narrow_primary_navigation_stays_legible_and_tappable(served: str) -> None:
+    """The 430px layout must not preserve navigation by shrinking it."""
+    narrow = served.split("@media (max-width:430px)", 1)[1].split(
+        "@media (prefers-reduced-motion:reduce)", 1
+    )[0]
+    assert re.search(r"\.site-header\s*\{[^}]*flex-wrap\s*:\s*wrap", narrow)
+    assert re.search(r"\.site-nav\s*\{[^}]*width\s*:\s*100%", narrow)
+
+    nav_rule = re.search(r"\.site-nav a\s*\{([^}]*)\}", narrow)
+    assert nav_rule, "narrow layout has no explicit primary-link sizing"
+    declarations = nav_rule.group(1)
+    font_size = re.search(r"font-size\s*:\s*([.\d]+)rem", declarations)
+    target_height = re.search(r"min-height\s*:\s*([.\d]+)px", declarations)
+    assert font_size and float(font_size.group(1)) >= 0.75
+    assert target_height and float(target_height.group(1)) >= 36
+
+
+def test_pull_requests_run_contract_without_publish_authority() -> None:
+    """PRs get a check; only a main-branch push may reach Cloudflare."""
+    workflow = PUBLISH_WORKFLOW.read_text(encoding="utf-8")
+    assert re.search(r"(?m)^\s{2}pull_request:\s*$", workflow)
+    assert re.search(r"(?m)^\s{2}contract:\s*$", workflow)
+
+    publish = workflow.split("  publish:", 1)[1]
+    assert re.search(r"(?m)^\s{4}needs:\s*contract\s*$", publish)
+    gate = re.search(r"(?m)^\s{4}if:\s*(.+)$", publish)
+    assert gate, "publish job has no event/ref authority gate"
+    assert "github.event_name == 'push'" in gate.group(1)
+    assert "github.ref == 'refs/heads/main'" in gate.group(1)
 
 
 def test_homepage_copy_is_concise(served: str) -> None:

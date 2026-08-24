@@ -10,11 +10,12 @@ kind. It is served by Cloudflare Pages.
   English only, no internal paths or hostnames, no scripts, no fetched fonts
   or images, a valid contact-address policy, and a Content-Security-Policy that
   agrees with the page.
-- `.github/workflows/publish.yml` — after review, a merge to `main` that touches
-  the site, contract, or workflow runs the contract, deploys `site/` to
-  Cloudflare Pages, and then fetches `https://zeonlab.ai/` from outside and
-  requires the served bytes to hash to the committed file. See `DEPLOY.md` for
-  the account setup and verification guidance.
+- `.github/workflows/publish.yml` — pull requests that touch the public surface
+  run the contract without deployment authority. After review, a merge to
+  `main` runs the same contract, deploys `site/` to Cloudflare Pages, and then
+  fetches `https://zeonlab.ai/` from outside and requires the served bytes to
+  hash to the committed file. See `DEPLOY.md` for the account setup and
+  verification guidance.
 
 ## Local development
 

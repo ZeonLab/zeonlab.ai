@@ -49,9 +49,10 @@ the custom domain to read *Active* before relying on the domain.
 
 ## 3. How publishing works
 
-For the normal publish path, after review merge the page change to `main`. A
-push to `main` that touches `site/`, `tests/`, or this workflow runs three gates
-in order:
+Pull requests that touch `site/`, `tests/`, or the workflow run the
+public-surface contract as a secrets-free pre-merge check. They cannot run the
+Cloudflare jobs. For the normal publish path, merge the reviewed change to
+`main`; that push runs three gates in order:
 
 1. The public-surface contract runs against the servable files.
 2. Wrangler directly uploads `site/` to the `zeonlab-site` Cloudflare Pages
