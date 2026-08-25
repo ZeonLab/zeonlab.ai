@@ -414,17 +414,17 @@ def test_page_promises_agent_powered_investment_research(served: str) -> None:
         "Track material events",
         "Gather point-in-time evidence",
         "Challenge the thesis",
-        "Synthesize a Decision Packet",
+        "Synthesize a Decision Capsule",
         "Collaborate with the investor",
     ]
     missing = [concept for concept in concepts if concept.lower() not in served.lower()]
     assert not missing, f"agent-powered buyer journey missing: {missing}"
 
 
-def test_page_shows_an_illustrative_decision_packet_and_buyer_sections(served: str) -> None:
+def test_page_shows_an_illustrative_decision_capsule_and_buyer_sections(served: str) -> None:
     """The homepage must prove the product with a safe, non-generic example."""
     concepts = [
-        "Illustrative Decision Packet",
+        "Illustrative Decision Capsule",
         "Illustrative only",
         "Point-in-time evidence",
         "Contrary evidence",
@@ -435,6 +435,11 @@ def test_page_shows_an_illustrative_decision_packet_and_buyer_sections(served: s
     ]
     missing = [concept for concept in concepts if concept.lower() not in served.lower()]
     assert not missing, f"buyer-facing product proof missing: {missing}"
+
+    visible = re.sub(r"<style[\s\S]*?</style>", " ", served, flags=re.I)
+    visible = re.sub(r"<[^>]+>", " ", visible)
+    assert "decision packet" not in visible.lower(), \
+        "public homepage must use one primary product object: Decision Capsule"
 
 
 def test_public_marketing_excludes_internal_lifecycle_and_execution_language(served: str) -> None:
@@ -462,7 +467,7 @@ def test_public_marketing_excludes_internal_lifecycle_and_execution_language(ser
 
 def test_primary_navigation_fragments_resolve(served: str) -> None:
     targets = set(re.findall(r'<a[^>]*href="#([^"]+)"', served))
-    required = {"main", "agents", "decision-packet", "benefits", "use-cases", "trust", "contact"}
+    required = {"main", "agents", "decision-capsule", "benefits", "use-cases", "trust", "contact"}
     assert required <= targets, f"primary navigation targets missing: {required - targets}"
     for target in targets:
         assert re.search(rf'id="{re.escape(target)}"', served), \
