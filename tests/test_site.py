@@ -310,6 +310,9 @@ TEXT_PAIRS = [
     ("ink3", "bg"),   # section labels, kicker, footer
     ("blue", "bg"),   # links
     ("ink", "s"),     # the contact slot chip
+    ("inverse-ink", "inverse-bg"),   # headings on fixed dark panels
+    ("inverse-ink2", "inverse-bg"),  # body copy on fixed dark panels
+    ("accent-ink", "accent"),        # CTA and brand-mark text
 ]
 
 AA_NORMAL = 4.5
@@ -326,6 +329,36 @@ def test_text_contrast_meets_aa(served: str, scheme: str) -> None:
             failures.append(f"--{fg} on --{bg} = {ratio:.2f}:1 "
                             f"({tok[fg]} on {tok[bg]})")
     assert not failures, f"{scheme} scheme below WCAG AA {AA_NORMAL}:1 -> {failures}"
+
+
+def test_accent_surfaces_use_the_tested_foreground(served: str) -> None:
+    """Accent-backed text must use the foreground covered by TEXT_PAIRS."""
+    for selector in (".brand-mark", ".button"):
+        rule = re.search(rf"{re.escape(selector)}\s*\{{([^}}]+)\}}", served)
+        assert rule, f"missing CSS rule for {selector}"
+        compact = re.sub(r"\s+", "", rule.group(1))
+        assert "background:var(--accent)" in compact, selector
+        assert "color:var(--accent-ink)" in compact, (
+            f"{selector} paints text on --accent without the tested --accent-ink"
+        )
+
+
+def test_validation_rung_footer_stays_in_normal_flow(served: str) -> None:
+    """A wrapped rung paragraph must push its footer down, never overlap it."""
+    rung = re.search(r"\.rung\s*\{([^}]+)\}", served)
+    footer = re.search(r"\.rung small\s*\{([^}]+)\}", served)
+    assert rung and footer, "validation rung CSS contract is missing"
+    rung_css = re.sub(r"\s+", "", rung.group(1))
+    footer_css = re.sub(r"\s+", "", footer.group(1))
+    assert "display:flex" in rung_css and "flex-direction:column" in rung_css
+    assert "position:absolute" not in footer_css
+    assert "margin-top:auto" in footer_css
+
+
+def test_mobile_loop_removes_connectors_with_equal_specificity(served: str) -> None:
+    """The mobile override must beat the desktop :not() connector selector."""
+    assert ".step:not(:last-child){border-right:0;margin-right:0}" in served
+    assert ".step:not(:last-child):after{display:none}" in served
 
 
 # --------------------------------------------------------------------------
@@ -366,3 +399,58 @@ def test_every_section_is_labelled(served: str) -> None:
     for target in re.findall(r'<section[^>]*aria-labelledby="([^"]+)"', served):
         assert re.search(rf'id="{re.escape(target)}"', served), \
             f"aria-labelledby={target!r} points at no element"
+
+
+# --------------------------------------------------------------------------
+# Public product contract -- the North Star and its maturity boundary
+# --------------------------------------------------------------------------
+
+def test_page_states_the_north_star_product_contract(served: str) -> None:
+    concepts = [
+        "AI-native investment operating system",
+        "point-in-time",
+        "EventEpisode",
+        "Brain + Quant",
+        "Decision Packet",
+        "portfolio construction",
+        "SHADOW",
+        "IBKR Paper",
+        "small-capital live",
+    ]
+    missing = [concept for concept in concepts if concept.lower() not in served.lower()]
+    assert not missing, f"North Star concepts missing from the public page: {missing}"
+
+
+def test_current_state_is_explicitly_non_actionable(served: str) -> None:
+    plain = re.sub(r"<[^>]+>", " ", served)
+    plain = " ".join(plain.split())
+    required = (
+        "Current evidence: fixture-backed research validation only. "
+        "Artifacts are research-only and NON_ACTIONABLE; no prospective SHADOW "
+        "operation is claimed, no capital is managed, and no orders are routed."
+    )
+    assert required in plain, (
+        "the current-evidence statement must bind fixture-backed maturity to "
+        "no prospective operation, zero capital, and zero order routing"
+    )
+
+    state_badge = re.search(r'<div class="state-pill">(.*?)</div>', served, flags=re.S)
+    current_rung = re.search(r'<article class="rung current">(.*?)</article>', served, flags=re.S)
+    assert state_badge and current_rung
+    assert "Fixture-backed research validation" in state_badge.group(1)
+    assert "Fixture-backed validation" in current_rung.group(1)
+    assert "Prospective SHADOW" not in current_rung.group(1)
+
+    future_shadow = re.search(
+        r'<article class="rung">.*?Future gate.*?Prospective SHADOW.*?</article>',
+        served, flags=re.S)
+    assert future_shadow, "Prospective SHADOW must be presented only as a future gate"
+
+
+def test_primary_navigation_fragments_resolve(served: str) -> None:
+    targets = set(re.findall(r'<a[^>]*href="#([^"]+)"', served))
+    required = {"main", "system", "loop", "validation", "contact"}
+    assert required <= targets, f"primary navigation targets missing: {required - targets}"
+    for target in targets:
+        assert re.search(rf'id="{re.escape(target)}"', served), \
+            f"href=#{target!s} points at no element"
