@@ -313,6 +313,7 @@ TEXT_PAIRS = [
     ("inverse-ink", "inverse-bg"),   # headings on fixed dark panels
     ("inverse-ink2", "inverse-bg"),  # body copy on fixed dark panels
     ("accent-ink", "accent"),        # CTA and brand-mark text
+    ("ink2", "pill"),               # agent-powered hero badge
 ]
 
 AA_NORMAL = 4.5
@@ -343,22 +344,22 @@ def test_accent_surfaces_use_the_tested_foreground(served: str) -> None:
         )
 
 
-def test_validation_rung_footer_stays_in_normal_flow(served: str) -> None:
-    """A wrapped rung paragraph must push its footer down, never overlap it."""
-    rung = re.search(r"\.rung\s*\{([^}]+)\}", served)
-    footer = re.search(r"\.rung small\s*\{([^}]+)\}", served)
-    assert rung and footer, "validation rung CSS contract is missing"
-    rung_css = re.sub(r"\s+", "", rung.group(1))
+def test_agent_cards_keep_their_footer_in_normal_flow(served: str) -> None:
+    """A wrapped agent-card description must never overlap its outcome label."""
+    card = re.search(r"\.agent-card\s*\{([^}]+)\}", served)
+    footer = re.search(r"\.agent-card small\s*\{([^}]+)\}", served)
+    assert card and footer, "agent-card CSS contract is missing"
+    card_css = re.sub(r"\s+", "", card.group(1))
     footer_css = re.sub(r"\s+", "", footer.group(1))
-    assert "display:flex" in rung_css and "flex-direction:column" in rung_css
+    assert "display:flex" in card_css and "flex-direction:column" in card_css
     assert "position:absolute" not in footer_css
     assert "margin-top:auto" in footer_css
 
 
-def test_mobile_loop_removes_connectors_with_equal_specificity(served: str) -> None:
-    """The mobile override must beat the desktop :not() connector selector."""
-    assert ".step:not(:last-child){border-right:0;margin-right:0}" in served
-    assert ".step:not(:last-child):after{display:none}" in served
+def test_mobile_agent_cards_remove_their_desktop_dividers(served: str) -> None:
+    """The narrow layout must turn the agent journey into readable stacked cards."""
+    assert ".agent-card,.agent-card:nth-child(2){min-height:auto;margin:0;padding:25px 0;border-right:0;border-bottom:1px solid var(--inverse-line)}" in served
+    assert ".agent-card:last-child{border-bottom:0}" in served
 
 
 # --------------------------------------------------------------------------
@@ -402,54 +403,71 @@ def test_every_section_is_labelled(served: str) -> None:
 
 
 # --------------------------------------------------------------------------
-# Public product contract -- the North Star and its maturity boundary
+# Public product contract -- buyer-facing, agent-powered research
 # --------------------------------------------------------------------------
 
-def test_page_states_the_north_star_product_contract(served: str) -> None:
+def test_page_promises_agent_powered_investment_research(served: str) -> None:
+    """A buyer must be able to understand the specialist-agent journey."""
     concepts = [
-        "AI-native investment operating system",
-        "point-in-time",
-        "EventEpisode",
-        "Brain + Quant",
-        "Decision Packet",
-        "portfolio construction",
-        "SHADOW",
-        "IBKR Paper",
-        "small-capital live",
+        "agent-powered",
+        "Specialist research agents",
+        "Track material events",
+        "Gather point-in-time evidence",
+        "Challenge the thesis",
+        "Synthesize a Decision Capsule",
+        "Collaborate with the investor",
     ]
     missing = [concept for concept in concepts if concept.lower() not in served.lower()]
-    assert not missing, f"North Star concepts missing from the public page: {missing}"
+    assert not missing, f"agent-powered buyer journey missing: {missing}"
 
 
-def test_current_state_is_explicitly_non_actionable(served: str) -> None:
-    plain = re.sub(r"<[^>]+>", " ", served)
-    plain = " ".join(plain.split())
-    required = (
-        "Current evidence: fixture-backed research validation only. "
-        "Artifacts are research-only and NON_ACTIONABLE; no prospective SHADOW "
-        "operation is claimed, no capital is managed, and no orders are routed."
-    )
-    assert required in plain, (
-        "the current-evidence statement must bind fixture-backed maturity to "
-        "no prospective operation, zero capital, and zero order routing"
-    )
+def test_page_shows_an_illustrative_decision_capsule_and_buyer_sections(served: str) -> None:
+    """The homepage must prove the product with a safe, non-generic example."""
+    concepts = [
+        "Illustrative Decision Capsule",
+        "Illustrative only",
+        "Point-in-time evidence",
+        "Contrary evidence",
+        "Independent review",
+        "Built for the moments that move an investment case",
+        "Traceable from source to conclusion",
+        "Research intelligence, not investment advice",
+    ]
+    missing = [concept for concept in concepts if concept.lower() not in served.lower()]
+    assert not missing, f"buyer-facing product proof missing: {missing}"
 
-    state_badge = re.search(r'<div class="state-pill">(.*?)</div>', served, flags=re.S)
-    current_rung = re.search(r'<article class="rung current">(.*?)</article>', served, flags=re.S)
-    assert state_badge and current_rung
-    assert "Fixture-backed research validation" in state_badge.group(1)
-    assert "Fixture-backed validation" in current_rung.group(1)
-    assert "Prospective SHADOW" not in current_rung.group(1)
+    visible = re.sub(r"<style[\s\S]*?</style>", " ", served, flags=re.I)
+    visible = re.sub(r"<[^>]+>", " ", visible)
+    assert "decision packet" not in visible.lower(), \
+        "public homepage must use one primary product object: Decision Capsule"
 
-    future_shadow = re.search(
-        r'<article class="rung">.*?Future gate.*?Prospective SHADOW.*?</article>',
-        served, flags=re.S)
-    assert future_shadow, "Prospective SHADOW must be presented only as a future gate"
+
+def test_public_marketing_excludes_internal_lifecycle_and_execution_language(served: str) -> None:
+    """Internal maturity and broker operations are not a public product promise."""
+    forbidden = [
+        "fixture-backed",
+        "shadow",
+        "held-out",
+        "ibkr",
+        "broker",
+        "small-capital",
+        "future gate",
+        "not claimed",
+        "maturity ladder",
+        "provider",
+        "harness",
+        "roadmap",
+    ]
+    visible = re.sub(r"<style[\s\S]*?</style>", " ", served, flags=re.I)
+    visible = re.sub(r"<[^>]+>", " ", visible)
+    low = visible.lower()
+    hits = [term for term in forbidden if term in low]
+    assert not hits, f"internal lifecycle or execution terms leaked publicly: {hits}"
 
 
 def test_primary_navigation_fragments_resolve(served: str) -> None:
     targets = set(re.findall(r'<a[^>]*href="#([^"]+)"', served))
-    required = {"main", "system", "loop", "validation", "contact"}
+    required = {"main", "agents", "decision-capsule", "benefits", "use-cases", "trust", "contact"}
     assert required <= targets, f"primary navigation targets missing: {required - targets}"
     for target in targets:
         assert re.search(rf'id="{re.escape(target)}"', served), \
